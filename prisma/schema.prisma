@@ -1,0 +1,158 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // Swap the provider to "postgresql" and update DATABASE_URL inside prisma.config.ts to move to Postgres — no other changes needed.
+  provider = "sqlite"
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+// Note: SQLite doesn't support native enums, so we store them as strings with @db.Text
+// The TypeScript layer enforces the enum type.
+
+// ─────────────────────────────────────────────
+// MODELS
+// ─────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("CLIENT") // "CLIENT" | "ADMIN"
+  name         String
+  createdAt    DateTime @default(now())
+
+  clientProfile ClientProfile?
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model ClientProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  companyName     String
+  region          String   @default("FR")
+  complianceType  String   @default("CSE")
+  notesFromAdmin  String?
+  createdAt       DateTime @default(now())
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meetingRequests MeetingRequest[]
+
+  @@map("client_profiles")
+}
+
+model MeetingRequest {
+  id               String    @id @default(cuid())
+  clientProfileId  String
+  title            String
+  meetingDate      DateTime
+  language         String    @default("fr")
+  region           String    @default("FR")
+  complianceType   String    @default("CSE")
+  location         String?
+  meetingType      String?   // "Ordinary" | "Extraordinary" | "Emergency"
+  tier             String    @default("ESSENTIAL") // "ESSENTIAL" | "SCOPE" | "PREMIUM"
+  status           String    @default("DRAFT")
+  // "DRAFT" | "PREVIEWED" | "QUOTED" | "ADMIN_INTAKE" | "TRANSCRIBING" |
+  // "TRANSCRIBED" | "GENERATING" | "IN_EDITING" | "LOCKED" | "DISPATCHED"
+  sourceFileUrl    String?
+  notes            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  clientProfile    ClientProfile    @relation(fields: [clientProfileId], references: [id], onDelete: Cascade)
+  previewResult    PreviewResult?
+  transcript       Transcript?
+  generatedOutputs GeneratedOutput[]
+  auditLogs        AuditLog[]
+
+  @@map("meeting_requests")
+}
+
+model PreviewResult {
+  id                 String   @id @default(cuid())
+  meetingRequestId   String   @unique
+  speakerAnalysisJson String? // JSON string
+  chartDataJson       String? // JSON string
+  complianceJson      String? // JSON string
+  createdAt           DateTime @default(now())
+
+  meetingRequest MeetingRequest @relation(fields: [meetingRequestId], references: [id], onDelete: Cascade)
+
+  @@map("preview_results")
+}
+
+model Transcript {
+  id               String   @id @default(cuid())
+  meetingRequestId String   @unique
+  rawJson          String   // JSON string — array of { speaker, start, end, text }
+  editedJson       String?  // JSON string — admin-edited version
+  updatedAt        DateTime @updatedAt
+
+  meetingRequest MeetingRequest @relation(fields: [meetingRequestId], references: [id], onDelete: Cascade)
+
+  @@map("transcripts")
+}
+
+model GeneratedOutput {
+  id               String    @id @default(cuid())
+  meetingRequestId String
+  type             String
+  // "SPEAKER_ANALYSIS" | "REPORT_ANALYZER" | "NUMERICAL_DATA" | "MINUTES_REPORT" | "PPT_EXPORT"
+  contentJson      String    // JSON string conforming to report-schema.ts
+  locked           Boolean   @default(false)
+  lockedAt         DateTime?
+  dispatchedAt     DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  meetingRequest MeetingRequest @relation(fields: [meetingRequestId], references: [id], onDelete: Cascade)
+
+  @@map("generated_outputs")
+}
+
+model PromptTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  outputType  String   // matches GeneratedOutput.type values
+  tier        String   // "ESSENTIAL" | "SCOPE" | "PREMIUM" | "ALL"
+  promptText  String
+  updatedBy   String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@unique([outputType, tier])
+  @@map("prompt_templates")
+}
+
+model VoiceKnowledgeEntry {
+  id       String @id @default(cuid())
+  question String
+  answer   String
+  language String @default("en") // "en" | "fr"
+
+  @@map("voice_knowledge_entries")
+}
+
+model AuditLog {
+  id               String   @id @default(cuid())
+  meetingRequestId String?
+  actorId          String
+  action           String
+  metadata         String?  // JSON string for extra context
+  createdAt        DateTime @default(now())
+
+  meetingRequest MeetingRequest? @relation(fields: [meetingRequestId], references: [id])
+  actor          User            @relation(fields: [actorId], references: [id])
+
+  @@map("audit_logs")
+}
