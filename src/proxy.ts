@@ -42,7 +42,7 @@ export default auth((req: NextRequest & { auth: { user?: { role?: string } } | n
 
   if (isLoggedIn && isAuthPage) {
     if (userRole === 'ADMIN') {
-      return NextResponse.redirect(new URL('/dev/components', req.url))
+      return NextResponse.redirect(new URL('/admin', req.url))
     }
     return NextResponse.redirect(new URL('/wizard/region', req.url))
   }
