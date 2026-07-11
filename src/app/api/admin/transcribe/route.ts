@@ -38,18 +38,22 @@ export async function POST(req: NextRequest) {
     const result = await stt.transcribe(meeting.sourceFileUrl)
     const segments = result.segments
 
-    // Save rawJson — never touch editedJson here
+    // Save rawJson — reset editedJson to null on re-run transcription
     const existing = await db.transcript.findUnique({ where: { meetingRequestId: requestId } })
     if (existing) {
       await db.transcript.update({
         where: { meetingRequestId: requestId },
-        data: { rawJson: JSON.stringify(segments) },
+        data: {
+          rawJson: JSON.stringify(segments),
+          editedJson: null,
+        },
       })
     } else {
       await db.transcript.create({
         data: {
           meetingRequestId: requestId,
           rawJson: JSON.stringify(segments),
+          editedJson: null,
         },
       })
     }
