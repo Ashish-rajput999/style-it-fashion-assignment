@@ -52,8 +52,10 @@ export class MockSTTProvider implements STTProvider {
     // Simulate processing delay
     await new Promise((resolve) => setTimeout(resolve, 800))
 
-    // Pick transcript variant based on filename hash
-    const hash = simpleHash(fileUrl)
+    // Pick transcript variant based on filename + time-based salt so repeated
+    // uploads (even same filename) can produce different demo data
+    const salt = fileUrl + '-' + Math.floor(Date.now() / 30000) // rotates every 30s
+    const hash = simpleHash(salt)
     const transcriptIndex = hash % DEMO_TRANSCRIPTS.length
     const segments = DEMO_TRANSCRIPTS[transcriptIndex]
 

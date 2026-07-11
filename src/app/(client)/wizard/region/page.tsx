@@ -10,26 +10,39 @@ export default function WizardRegionPage() {
   const [selectedRegion, setSelectedRegion] = useState('FR')
   const [selectedCompliance, setSelectedCompliance] = useState('CSE')
   const [loading, setLoading] = useState(false)
+  const [apiError, setApiError] = useState('')
 
   const region = REGIONS.find((r) => r.code === selectedRegion)!
   const complianceTypes = region.complianceTypes
 
   async function handleContinue() {
     setLoading(true)
+    setApiError('')
     const formData = new FormData()
     formData.append('region', selectedRegion)
     formData.append('complianceType', selectedCompliance)
     formData.append('language', 'fr')
 
-    const res = await fetch('/api/wizard/draft', {
-      method: 'POST',
-      body: formData,
-    })
-    const data = await res.json()
-    if (data.draftId) {
+    try {
+      const res = await fetch('/api/wizard/draft', {
+        method: 'POST',
+        body: formData,
+      })
+      if (res.status === 401) {
+        router.push('/login')
+        return
+      }
+      const data = await res.json()
+      if (!res.ok || !data.draftId) {
+        setApiError(data.error || 'Failed to start wizard. Please try again.')
+        setLoading(false)
+        return
+      }
       router.push(`/wizard/details?draftId=${data.draftId}`)
+    } catch {
+      setApiError('Network error. Please check your connection and try again.')
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
@@ -132,8 +145,16 @@ export default function WizardRegionPage() {
           </div>
         </section>
 
-        {/* Actions */}
-        <div className="wizard-actions">
+          {/* Error message */}
+          {apiError && (
+            <div className="auth-error" role="alert" style={{ margin: '0 0 1rem 0' }}>
+              <span className="auth-error-icon">⚠</span>
+              {apiError}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="wizard-actions">
           <button
             onClick={handleContinue}
             disabled={!selectedRegion || !selectedCompliance || loading}

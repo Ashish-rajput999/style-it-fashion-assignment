@@ -31,6 +31,13 @@ async function main() {
       passwordHash,
       role: 'ADMIN',
       name: 'System Administrator',
+      clientProfile: {
+        create: {
+          companyName: 'System Administration',
+          region: 'FR',
+          complianceType: 'CSE',
+        },
+      },
     },
   })
 

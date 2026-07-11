@@ -29,8 +29,21 @@ export default function LoginPage() {
     if (res?.error) {
       setError('Invalid email or password. Please try again.')
     } else {
-      router.push('/wizard/region')
+      // Fetch the session to determine the role and redirect accordingly
+      try {
+        const sessionRes = await fetch('/api/auth/session')
+        const session = await sessionRes.json()
+        if (session?.user?.role === 'ADMIN') {
+          // Admin panel not yet built — redirect to dev sandbox
+          router.push('/dev/components')
+        } else {
+          router.push('/wizard/region')
+        }
+      } catch {
+        router.push('/wizard/region')
+      }
     }
+
   }
 
   return (

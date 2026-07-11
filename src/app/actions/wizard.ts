@@ -18,9 +18,23 @@ async function getClientProfile() {
     where: { email: session.user.email },
     include: { clientProfile: true },
   })
-  if (!user?.clientProfile) redirect('/login')
-  return { user, profile: user.clientProfile }
+  if (!user) redirect('/login')
+
+  let profile = user.clientProfile
+  if (!profile) {
+    profile = await db.clientProfile.create({
+      data: {
+        userId: user.id,
+        companyName: user.name ?? 'My Company',
+        region: 'FR',
+        complianceType: 'CSE',
+      },
+    })
+  }
+
+  return { user, profile }
 }
+
 
 // ─── Step 1: Create / update wizard draft ─────────────────────────────────
 
@@ -169,4 +183,27 @@ export async function processUpload(draftId: string) {
   await db.meetingRequest.update({ where: { id: draftId }, data: { status: 'PREVIEWED' } })
 
   return { success: true }
+}
+
+// ─── Step 4: Submit Quotation ─────────────────────────────────────────────
+
+export async function submitQuotation(formData: FormData) {
+  const draftId = formData.get('draftId') as string
+  const tier = formData.get('tier') as string
+  const notes = formData.get('notes') as string
+
+  if (!draftId) {
+    redirect('/wizard/region')
+  }
+
+  await db.meetingRequest.update({
+    where: { id: draftId },
+    data: {
+      tier,
+      notes,
+      status: 'QUOTED',
+    },
+  })
+
+  redirect('/dashboard')
 }

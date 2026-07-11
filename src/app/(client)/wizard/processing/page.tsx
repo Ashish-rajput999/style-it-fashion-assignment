@@ -81,11 +81,11 @@ export default function ProcessingPage() {
     }
     runProcessing()
 
-    // Complete after 9s, then redirect
+    // Complete after 9s, then redirect to the live book preview page
     const doneTimer = setTimeout(() => {
       setDone(true)
       setTimeout(() => {
-        router.push(`/preview/${draftId}`)
+        router.push(`/wizard/preview?draftId=${draftId}`)
       }, 1200)
     }, 9000)
 

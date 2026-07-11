@@ -13,8 +13,22 @@ export async function POST(req: NextRequest) {
       where: { email: session.user.email },
       include: { clientProfile: true },
     })
-    if (!user?.clientProfile) {
-      return NextResponse.json({ error: 'Client profile not found' }, { status: 404 })
+    if (!user) {
+      return NextResponse.json({ error: 'Session expired. Please sign in again.' }, { status: 401 })
+    }
+
+    // Auto-create a clientProfile if the user doesn't have one yet
+    // (covers admin accounts testing the wizard flow)
+    let profile = user.clientProfile
+    if (!profile) {
+      profile = await db.clientProfile.create({
+        data: {
+          userId: user.id,
+          companyName: user.name ?? 'My Company',
+          region: 'FR',
+          complianceType: 'CSE',
+        },
+      })
     }
 
     const formData = await req.formData()
@@ -24,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     const draft = await db.meetingRequest.create({
       data: {
-        clientProfileId: user.clientProfile.id,
+        clientProfileId: profile.id,
         title: 'Untitled Meeting',
         meetingDate: new Date(),
         region,

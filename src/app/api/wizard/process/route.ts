@@ -42,12 +42,24 @@ export async function POST(req: NextRequest) {
     await db.meetingRequest.update({ where: { id: draftId }, data: { status: 'GENERATING' } })
 
     const llm = getLLMProvider()
-    const context = sttResult.segments.map((s: any) => `[${s.speaker}]: ${s.text}`).join('\n')
+    // Build context object: segments + meeting metadata so the LLM mock
+    // reflects the real title/date/location the user filled in the wizard
+    const contextPayload = JSON.stringify({
+      segments: sttResult.segments,
+      context: {
+        title: meeting.title,
+        meetingDate: meeting.meetingDate?.toISOString(),
+        location: meeting.location,
+        meetingType: meeting.meetingType,
+        complianceType: meeting.complianceType,
+        region: meeting.region,
+      },
+    })
 
     const [speakerAnalysis, chartData, complianceData] = await Promise.all([
-      llm.generate('Analyze speaker participation and discussion topics.', context, 'speakers'),
-      llm.generate('Generate chart visualization data for this meeting.', context, 'chart-data'),
-      llm.generate('Audit CSE compliance against French Labor Code.', context, 'analyzer'),
+      llm.generate('Analyze speaker participation and discussion topics.', contextPayload, 'speakers'),
+      llm.generate('Generate chart visualization data for this meeting.', contextPayload, 'chart-data'),
+      llm.generate('Audit CSE compliance against French Labor Code.', contextPayload, 'analyzer'),
     ])
 
     // ── Stage 3: Write PreviewResult ──────────────────────────────────────────
