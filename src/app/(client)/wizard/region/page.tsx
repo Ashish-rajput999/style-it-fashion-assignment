@@ -3,27 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { REGIONS } from '@/lib/compliance/regions'
-
-const TIER_PREVIEWS = [
-  {
-    tier: 'Essential',
-    icon: '⭐',
-    color: '#6D5DF6',
-    lines: [4, 6, 3, 5],
-  },
-  {
-    tier: 'Scope',
-    icon: '💎',
-    color: '#2F69FF',
-    lines: [5, 6, 4, 5, 3],
-  },
-  {
-    tier: 'Premium',
-    icon: '👑',
-    color: '#F6BF2F',
-    lines: [5, 6, 4, 6, 5, 3],
-  },
-]
+import { TIERS } from '@/lib/tiers'
 
 export default function WizardRegionPage() {
   const router = useRouter()
@@ -170,23 +150,21 @@ export default function WizardRegionPage() {
 
       {/* Right: tier preview cards */}
       <div className="wizard-tier-panel">
-        {TIER_PREVIEWS.map((t) => (
-          <div key={t.tier} className="wizard-tier-card">
+        {TIERS.map((t) => (
+          <div key={t.id} className="wizard-tier-card">
             <div className="wizard-tier-card-header">
               <span className="wizard-tier-icon" style={{ color: t.color }}>{t.icon}</span>
-              <span className="wizard-tier-name" style={{ color: t.color }}>{t.tier}</span>
+              <span className="wizard-tier-name" style={{ color: t.color }}>{t.name}</span>
             </div>
-            <div className="wizard-tier-brand">SIRUS</div>
-            {/* Mini report skeleton */}
-            <div className="wizard-tier-preview">
-              {t.lines.map((w, i) => (
-                <div
-                  key={i}
-                  className="wizard-tier-line"
-                  style={{ width: `${w * 14}%` }}
-                />
+            <div className="wizard-tier-brand">MeetingMind</div>
+            {/* Real Feature Bullets */}
+            <ul className="mt-2 space-y-1.5 border-t border-gray-100 pt-2 text-[11px] text-gray-500 list-disc list-inside">
+              {t.features.slice(0, 4).map((feat, idx) => (
+                <li key={idx} className="truncate" title={feat}>
+                  {feat}
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         ))}
       </div>

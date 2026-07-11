@@ -99,7 +99,7 @@ export default function WizardDetailsPage() {
           <span className="wizard-breadcrumb-item wizard-breadcrumb-item--active">
             🇫🇷 {breadcrumb.language}
           </span>
-          <button className="wizard-breadcrumb-change">Change →</button>
+          <button type="button" onClick={() => router.push('/wizard/region')} className="wizard-breadcrumb-change">Change →</button>
         </div>
 
         <h2 className="wizard-details-title">Meeting Details</h2>

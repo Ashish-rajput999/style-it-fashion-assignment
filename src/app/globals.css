@@ -1583,6 +1583,96 @@ button {
   margin-bottom: -15%;
 }
 
+/* CoverPage overrides when inside the wizard preview wrapper to prevent overlapping */
+.wizard-preview-scale-inner > div {
+  min-height: 720px !important;
+  padding: 30px 40px !important;
+}
+
+.wizard-preview-scale-inner .doc-eyebrow {
+  font-size: 9px !important;
+  letter-spacing: 1px !important;
+  margin-bottom: 12px !important;
+  flex-wrap: wrap !important;
+  line-height: 1.4 !important;
+}
+
+.wizard-preview-scale-inner .doc-h1 {
+  font-size: 26px !important;
+  margin-bottom: 8px !important;
+  line-height: 1.2 !important;
+}
+
+.wizard-preview-scale-inner .doc-subtitle {
+  font-size: 13px !important;
+  margin-top: 8px !important;
+  margin-bottom: 16px !important;
+}
+
+.wizard-preview-scale-inner .doc-rule {
+  height: 2px !important;
+  margin-bottom: 12px !important;
+}
+
+.wizard-preview-scale-inner p.text-\[\#485573\] {
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+  margin-bottom: 16px !important;
+}
+
+.wizard-preview-scale-inner .doc-stat-card {
+  padding: 10px 8px !important;
+  border-width: 1.5px !important;
+  border-radius: 8px !important;
+  min-width: 0 !important;
+}
+
+.wizard-preview-scale-inner .doc-stat-label {
+  font-size: 8px !important;
+  letter-spacing: 0.5px !important;
+  margin-bottom: 4px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wizard-preview-scale-inner .doc-stat-value {
+  font-size: 13px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wizard-preview-scale-inner h2 {
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+  margin-bottom: 8px !important;
+  padding-bottom: 6px !important;
+}
+
+.wizard-preview-scale-inner .grid-cols-2 {
+  gap: 8px !important;
+}
+
+.wizard-preview-scale-inner .w-9 {
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 10px !important;
+}
+
+.wizard-preview-scale-inner .text-\[14px\] {
+  font-size: 10px !important;
+}
+
+.wizard-preview-scale-inner .text-\[12px\] {
+  font-size: 8px !important;
+}
+
+.wizard-preview-scale-inner .mt-8 {
+  margin-top: 12px !important;
+}
+
+
 .wizard-preview-hint {
   font-size: 0.8rem;
   color: #94a3b8;
