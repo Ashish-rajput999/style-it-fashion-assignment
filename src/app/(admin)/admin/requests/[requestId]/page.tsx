@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { redirect, notFound } from 'next/navigation'
 import { CoverPage } from '@/components/report/CoverPage'
 import { TranscriptEditor } from './TranscriptEditor'
+import { GenerationPanel } from './GenerationPanel'
 import type { Segment } from './TranscriptEditor'
 
 interface RequestPageProps {
@@ -111,7 +112,16 @@ export default async function RequestDetailPage({ params, searchParams }: Reques
     actionItems: 0,
   }
 
-  const activeTab = ['transcript', 'outputs', 'notes'].includes(tab) ? tab : 'transcript'
+  const activeTab = ['transcript', 'generate', 'outputs', 'notes'].includes(tab) ? tab : 'transcript'
+
+  // Serialise outputs for GenerationPanel
+  const serialisedOutputs = meeting.generatedOutputs.map(o => ({
+    id: o.id,
+    type: o.type,
+    contentJson: o.contentJson,
+    locked: o.locked,
+    createdAt: o.createdAt.toISOString(),
+  }))
 
   return (
     <div className="min-h-screen bg-[#0F1226] text-white flex flex-col font-sans">
@@ -301,6 +311,7 @@ export default async function RequestDetailPage({ params, searchParams }: Reques
           <div className="border-b border-white/10 px-6 pt-4 flex items-center gap-1">
             {[
               { id: 'transcript', label: 'Transcript', icon: '🎙️' },
+              { id: 'generate', label: 'Generate', icon: '⚡' },
               { id: 'outputs', label: 'Outputs', icon: '📄' },
               { id: 'notes', label: 'Client Notes', icon: '💬' },
             ].map((t) => (
@@ -329,6 +340,16 @@ export default async function RequestDetailPage({ params, searchParams }: Reques
                 initialSegments={segments}
                 hasSourceFile={!!meeting.sourceFileUrl}
                 hasSavedEdits={hasSavedEdits}
+              />
+            )}
+
+            {/* GENERATE TAB */}
+            {activeTab === 'generate' && (
+              <GenerationPanel
+                requestId={requestId}
+                tier={meeting.tier}
+                hasTranscript={!!meeting.transcript}
+                existingOutputs={serialisedOutputs}
               />
             )}
 
