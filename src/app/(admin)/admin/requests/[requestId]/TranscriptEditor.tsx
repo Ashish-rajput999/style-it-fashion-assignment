@@ -168,12 +168,20 @@ export function TranscriptEditor({
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle')
   const [transcribeError, setTranscribeError] = useState<string | null>(null)
   const [isDirty, setIsDirty] = useState(false)
+  const [savedEditsExist, setSavedEditsExist] = useState(hasSavedEdits)
 
   // Memoised speaker colour map (reset when segments change shape)
   const speakerIndex = useRef(new Map<string, number>())
   const allSpeakers = [...new Set(segments.map((s) => s.speaker))]
 
   const runTranscription = useCallback(async () => {
+    if (savedEditsExist) {
+      const ok = window.confirm(
+        'This will discard your saved edits and re-transcribe from scratch. Continue?'
+      )
+      if (!ok) return
+    }
+
     setIsTranscribing(true)
     setTranscribeError(null)
     setSaveStatus('idle')
@@ -189,12 +197,13 @@ export function TranscriptEditor({
       setSegments(data.segments)
       setIsDirty(false)
       setSaveStatus('idle')
+      setSavedEditsExist(false)
     } catch (err: any) {
       setTranscribeError(err.message)
     } finally {
       setIsTranscribing(false)
     }
-  }, [requestId])
+  }, [requestId, savedEditsExist])
 
   const updateSegment = useCallback((index: number, updated: Segment) => {
     setSegments((prev) => {
@@ -222,6 +231,7 @@ export function TranscriptEditor({
       }
       setSaveStatus('saved')
       setIsDirty(false)
+      setSavedEditsExist(true)
     } catch {
       setSaveStatus('error')
     } finally {
