@@ -19,6 +19,7 @@ interface MeetingCard {
   clientName: string
   clientEmail: string
   company: string
+  clientProfileId: string
 }
 
 const TIER_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -61,7 +62,17 @@ function RequestCard({ meeting }: { meeting: MeetingCard }) {
       </h3>
 
       <p className="text-[10px] text-gray-400 mb-3">
-        {meeting.company} · {meeting.clientEmail}
+        <span
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            window.location.href = `/admin/clients/${meeting.clientProfileId}`
+          }}
+          className="text-indigo-400 hover:text-indigo-300 font-bold hover:underline cursor-pointer"
+        >
+          {meeting.company}
+        </span>{' '}
+        · {meeting.clientEmail}
       </p>
 
       <div className="flex items-center justify-between text-[10px] text-gray-500">

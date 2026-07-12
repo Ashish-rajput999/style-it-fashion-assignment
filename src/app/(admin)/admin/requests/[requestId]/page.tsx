@@ -6,6 +6,7 @@ import { redirect, notFound } from 'next/navigation'
 import { CoverPage } from '@/components/report/CoverPage'
 import { TranscriptEditor } from './TranscriptEditor'
 import { GenerationPanel } from './GenerationPanel'
+import { DispatchButton } from './DispatchButton'
 import type { Segment } from './TranscriptEditor'
 
 interface RequestPageProps {
@@ -123,6 +124,15 @@ export default async function RequestDetailPage({ params, searchParams }: Reques
     createdAt: o.createdAt.toISOString(),
   }))
 
+  const reportOutput = meeting.generatedOutputs.find((o) => o.type === 'MINUTES_REPORT')
+  const isDispatchable = !!reportOutput && reportOutput.locked
+  let disabledReason = undefined
+  if (!reportOutput) {
+    disabledReason = 'Generate Minutes Report output first'
+  } else if (!reportOutput.locked) {
+    disabledReason = 'Lock the Minutes Report document to enable dispatch'
+  }
+
   return (
     <div className="min-h-screen bg-[#0F1226] text-white flex flex-col font-sans">
       {/* Admin Top Header */}
@@ -143,6 +153,12 @@ export default async function RequestDetailPage({ params, searchParams }: Reques
           </p>
         </div>
         <div className="ml-auto flex items-center gap-3">
+          <DispatchButton
+            requestId={meeting.id}
+            status={meeting.status}
+            isDispatchable={isDispatchable}
+            disabledReason={disabledReason}
+          />
           <span
             className={`text-[9px] font-extrabold uppercase tracking-widest px-2 py-1 rounded-full ${
               meeting.tier === 'PREMIUM'
@@ -288,7 +304,12 @@ export default async function RequestDetailPage({ params, searchParams }: Reques
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Company</span>
-                <span className="text-white font-medium">{profile.companyName}</span>
+                <Link
+                  href={`/admin/clients/${profile.id}`}
+                  className="text-indigo-400 hover:text-indigo-300 font-bold hover:underline"
+                >
+                  {profile.companyName} →
+                </Link>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Region</span>

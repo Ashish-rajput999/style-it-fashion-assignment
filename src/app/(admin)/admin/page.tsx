@@ -36,6 +36,7 @@ export default async function AdminQueuePage() {
     clientName: m.clientProfile.user.name,
     clientEmail: m.clientProfile.user.email,
     company: m.clientProfile.companyName,
+    clientProfileId: m.clientProfile.id,
   }))
 
   return (
@@ -55,7 +56,7 @@ export default async function AdminQueuePage() {
         <nav className="hidden md:flex items-center gap-6 text-xs font-bold text-gray-400">
           <Link href="/admin" className="text-white">Queue</Link>
           <span className="opacity-40 cursor-not-allowed">Clients</span>
-          <span className="opacity-40 cursor-not-allowed">Prompts</span>
+          <Link href="/admin/prompts">Prompts</Link>
         </nav>
 
         <div className="flex items-center gap-3 text-xs">
