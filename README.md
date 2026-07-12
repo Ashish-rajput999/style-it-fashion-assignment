@@ -1,169 +1,244 @@
 # MeetingMind 🎙️🤖
 
-An enterprise-grade, compliance-first minutes generator and audit portal designed specifically for French Social and Economic Committee (CSE) meetings. MeetingMind converts raw audio/video recordings into structured, legally compliant minutes and exports them to print-ready PDF and DOCX formats.
+> **Enterprise-grade, compliance-first meeting minutes for French CSE / Works Councils.**  
+> Upload raw audio/video → AI transcription → structured compliance report → PDF + DOCX export.
 
 ---
 
-## 🚀 Quick Start (Local Setup)
+## 🚀 Quick Start (2 commands after clone)
 
-Setup is completely automated. Zero manual database installation, configuration, or external accounts are required to get the full sandbox environment running locally.
+No database server, no cloud account, no manual configuration required.
 
-### 1. Install dependencies
-From the project root directory, run:
 ```bash
+# 1. Install dependencies
 pnpm install
-```
 
-### 2. Configure Environment variables
-Copy the template configuration file to `.env`:
-```bash
+# 2. Copy environment template (defaults work out of the box)
 cp .env.example .env
-```
-*(No edits are needed in `.env` for standard local execution—it defaults to the local SQLite sandboxed configuration).*
 
-### 3. Initialize & Seed Database
-Reset the SQLite database, apply the schema, and seed the default user accounts and template reports:
-```bash
-npx prisma db push --force-reset
-npx prisma db seed
-```
+# 3. Bootstrap database + generate Prisma client + seed demo data — single command
+pnpm setup
 
-### 4. Start Development Server
-Boot up the Next.js development server:
-```bash
+# 4. Start development server
 pnpm dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+Open http://localhost:3000
+
+> **What `pnpm setup` does internally:**  
+> `prisma db push --force-reset` → `prisma generate` → `prisma db seed`  
+> This sequence is required because `db push` does **not** auto-generate the Prisma Client.  
+> Running `seed` before `generate` causes a `MODULE_NOT_FOUND` crash — the setup script  
+> eliminates this for anyone cloning fresh.
+
+### Demo credentials (pre-seeded)
+
+| Role | Email | Password |
+|------|-------|----------|
+| **Client** | `client1@meetingmind.com` | `password123` |
+| **Admin** | `admin@meetingmind.com` | `password123` |
 
 ---
 
-## 🏛️ Architecture Overview
+## 🏛️ Architecture
 
-MeetingMind is built on Next.js 15 (App Router) with Prisma ORM and SQLite.
+MeetingMind is a **Next.js 16 App Router** monolith with SQLite (Prisma) and a provider abstraction layer for every AI service.
 
 ```
-                  ┌───────────────────────────────────────────────┐
-                  │                 Next.js UI                    │
-                  │   (src/app/page.tsx, components/marketing/)   │
-                  └───────────────┬───────────────┬───────────────┘
-                                  │               │
-      ┌───────────────────────────▼───┐       ┌───▼───────────────────────────┐
-      │       Client Portal           │       │         Admin Portal          │
-      │    (src/app/(client)/)        │       │      (src/app/(admin)/)       │
-      │                               │       │                               │
-      │ ─ Dashboard & Stats           │       │ ─ Kanban Request Queue        │
-      │ ─ Wizard (Upload / Quote)     │       │ ─ Transcription Workbench     │
-      │ ─ Interactive BookViewer      │       │ ─ LLM generation cockpit      │
-      │ ─ Voice Assistant Widget      │       │ ─ Prompt Template Editor      │
-      └───────────────┬───────────────┘       └───┬───────────────────────────┘
-                      │                           │
-                      └─────────────┬─────────────┘
-                                    │
-                                    ▼
-                      ┌───────────────────────────┐
-                      │    Service Abstractions   │
-                      │      (src/lib/auth)       │
-                      │      (src/lib/db)         │
-                      │      (src/lib/storage)    │
-                      └─────────────┬─────────────┘
-                                    │
-                                    ▼
-                      ┌───────────────────────────┐
-                      │    Provider Adapter       │
-                      │   (src/lib/providers/)    │
-                      └─────┬───────────────┬─────┘
-                            │               │
-             ┌──────────────▼──────┐ ┌──────▼──────────────┐
-             │   Mock Sandbox      │ │   Live Providers    │
-             │   (Default)         │ │  (Deepgram/OpenAI/  │
-             │                     │ │   Gemini/DeepSeek)  │
-             └─────────────────────┘ └─────────────────────┘
+                    ┌─────────────────────────────────────┐
+                    │         Marketing Homepage          │
+                    │         src/app/page.tsx            │
+                    └──────────────┬──────────────────────┘
+                                   │
+          ┌────────────────────────┼────────────────────────┐
+          │                        │                        │
+          ▼                        ▼                        ▼
+┌─────────────────┐    ┌──────────────────────┐    ┌────────────────────┐
+│  Client Portal  │    │   Admin Portal       │    │   Export Routes    │
+│(app/(client)/)  │    │  (app/(admin)/)      │    │ (app/api/export/)  │
+│                 │    │                      │    │                    │
+│ • Dashboard     │    │ • Kanban queue       │    │ /pdf/[outputId]    │
+│ • 6-step Wizard │    │ • Request folder     │    │ /docx/[outputId]   │
+│ • BookViewer    │    │ • Transcript editor  │    │ /render/[outputId] │
+│ • Voice Widget  │    │ • Generation panel   │    └────────────────────┘
+└────────┬────────┘    │ • Prompt library     │
+         │             └──────────┬───────────┘
+         └──────────────┬─────────┘
+                        │
+                        ▼
+          ┌─────────────────────────────┐
+          │      Provider Layer         │
+          │   src/lib/providers/        │
+          │                             │
+          │  STT:  Mock | Deepgram      │
+          │  LLM:  Mock | OpenAI        │
+          │               | Gemini      │
+          │               | DeepSeek    │
+          │  TTS:  Mock | Deepgram      │
+          └──────────┬──────────────────┘
+                     │
+                     ▼
+          ┌─────────────────────────────┐
+          │    Prisma ORM + SQLite      │
+          │         dev.db              │
+          │  (swap DATABASE_URL for    │
+          │   Postgres in production)  │
+          └─────────────────────────────┘
 ```
 
-### Key Directories
-*   `src/app/(client)/` — Portal and Wizard wizard flow for meeting clients.
-*   `src/app/(admin)/` — Board request pipelines, transcripts editing, prompt configurations, and audit reports dispatch cockpit.
-*   `src/app/export/` & `/api/export/` — PDF & DOCX streaming endpoints.
-*   `src/components/report/` — Shared react components (CoverPage, AttendanceTable, SpeakerBubble, AlertCallout, Timeline, PageChrome) for both on-screen BookViewer rendering and server-side PDF Puppeteer printing.
-*   `src/components/voice-agent/` — Client portal interactive floating voice assistant.
-*   `src/lib/providers/` — Adapter interfaces (`types.ts`) and custom modules.
-*   `prisma/` — Schema definition (`schema.prisma`) and initial database seeding script (`seed.ts`).
+### Key directories
+
+```
+src/
+├── app/
+│   ├── (client)/          # Client portal: dashboard, wizard, preview
+│   ├── (admin)/           # Admin portal: queue, request folder, prompts
+│   ├── (auth)/            # Login / signup pages
+│   ├── api/               # Route handlers (wizard, export, transcribe, assistant)
+│   ├── export/render/     # Secret-gated HTML render page used by Puppeteer PDF
+│   └── globals.css        # Full design system (tokens, components, @media print)
+│
+├── components/
+│   ├── ebook/             # BookViewer — animated double-page flip reader
+│   ├── marketing/         # Homepage sections
+│   ├── report/            # Shared report components used by BookViewer AND PDF
+│   └── voice-agent/       # Floating voice assistant widget
+│
+├── lib/
+│   ├── providers/
+│   │   ├── llm/           # mock + openai + gemini + deepseek adapters
+│   │   ├── stt/           # mock + deepgram adapters
+│   │   └── tts/           # mock + deepgram adapters
+│   ├── auth.ts            # NextAuth v5 config
+│   ├── db.ts              # Prisma singleton
+│   ├── report-schema.ts   # MinutesReport Zod schema
+│   ├── storage.ts         # Local file storage
+│   └── tiers.ts           # ESSENTIAL / SCOPE / PREMIUM feature definitions
+│
+└── proxy.ts               # Edge middleware (auth + role routing)
+
+prisma/
+├── schema.prisma          # Data model
+└── seed.ts                # Demo users, 3 dispatched reports, prompts, voice FAQs
+```
 
 ---
 
-## 🤖 What's Mocked vs. Production-Ready
+## 🤖 Mocked vs. Production-Ready
 
-By default, MeetingMind runs in a **Sandbox Mock Mode** so developers can inspect and audit LLM, STT, and TTS capabilities without requiring subscription API keys.
+By default every AI service runs in **sandbox mock mode** — no API keys needed.
 
-| Service | Sandboxed Mock Mode (Default) | Production-Ready Swappable Provider |
-| :--- | :--- | :--- |
-| **STT** (Speech-to-Text) | `MockSTTProvider` (simulates transcripts processing) | `DeepgramSTTProvider` (real-time audio upload processing) |
-| **LLM** (Compliance Minutes) | `MockLLMProvider` (returns seeded report templates) | `OpenAILLMProvider`, `GeminiLLMProvider`, `DeepSeekLLMProvider` |
-| **TTS** (Voice Assistant) | SpeechSynthesis API / Mock | `DeepgramTTSProvider` |
+| Service | Default (mock) | Live provider |
+|---------|----------------|---------------|
+| **STT** — Speech-to-Text | `MockSTTProvider` — seeded transcript JSON | `DeepgramSTTProvider` |
+| **LLM** — Report generation | `MockLLMProvider` — seeded `MinutesReport` | `OpenAILLMProvider` / `GeminiLLMProvider` / `DeepSeekLLMProvider` |
+| **TTS** — Voice assistant | Browser `SpeechSynthesis` API | `DeepgramTTSProvider` |
+| **PDF export** | Puppeteer + Chromium ✅ real | Same — production-grade |
+| **DOCX export** | `docx` library ✅ real | Same — production-grade |
+| **Auth** | NextAuth + bcrypt ✅ real | Same |
+| **Storage** | Local disk (`public/uploads/`) | Swap `storage.ts` for S3/GCS |
+| **Database** | SQLite (`dev.db`) | Change `DATABASE_URL` → Postgres |
 
-### swappable Live configuration
-To go live, change the config variables in your `.env` file:
+### Swapping in live AI credentials
+
+Edit `.env`:
+
 ```env
-# Choose provider keys
+# STT
 STT_PROVIDER=deepgram
-LLM_PROVIDER=openai  # or gemini, deepseek
-TTS_PROVIDER=deepgram
+DEEPGRAM_API_KEY=dg_xxxxxxxxxxxxxxxxxxxx
 
-# Provide actual keys
-DEEPGRAM_API_KEY=your_deepgram_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
-GEMINI_API_KEY=your_gemini_api_key_here
-DEEPSEEK_API_KEY=your_deepseek_api_key_here
+# LLM — pick one
+LLM_PROVIDER=openai           # or: gemini | deepseek
+OPENAI_API_KEY=sk-xxxxxxxxxxxx
+GEMINI_API_KEY=AIzaSy_xxxxxxx
+DEEPSEEK_API_KEY=sk-xxxxxxxxxxxx
+
+# TTS (uses same Deepgram key)
+TTS_PROVIDER=deepgram
 ```
 
----
-
-## 🎬 Step-by-Step Demo Script (5-10 Minutes Presentation)
-
-### Step 1: The Marketing Homepage (Zero Auth)
-1. Navigate to `http://localhost:3000` (incognito browser recommended).
-2. Show the Hero section and Before/After comparison panels outlining AI vs Manual minute creation.
-3. Scroll to the **Sample Report Library**.
-4. Open the **PREMIUM** sample report. Flip through the pages in the **BookViewer** modal, showing the "SAMPLE REPORT" watermark.
-5. Click **Download PDF** and **Download DOCX** in the modal top bar, showing successful downloads with clean corporate filenames. Close modal.
-6. Open the **ESSENTIAL** report card modal and verify *only* the PDF option is available.
-
-### Step 2: Client Signup & Wizard Flow
-1. Click **Get Started** in the top header.
-2. Sign up with a new email, or click **Client Login** and log in with default seeded credentials:
-   * **Client Login:** `client1@meetingmind.com` / `password123`
-3. In the Client Portal dashboard, click **Launch Creation Wizard**.
-4. **Step 1 (Region & Compliance):** Select **France** and **CSE**. Click Continue.
-5. **Step 2 (Meeting Details):** Fill in name, location, select meeting type, and choose a date. Click Continue.
-6. **Step 3 (Tier Selection):** Choose **Premium**.
-7. **Step 4 (Upload Audio):** Drag and drop or upload any test audio/video file. Click **Upload and Process**. Show the custom loading states.
-8. **Step 5 (Proposal Review):** Review the generated quotation proposal. Click **Accept & Submit Request**.
-9. The request is now placed in the Client Dashboard as `Awaiting Operation Delivery`.
-
-### Step 3: Admin Review, Generation, and Dispatch
-1. Click **Sign Out** in the dashboard header.
-2. Click **Client Login** (leads to login) and log in with default seeded admin credentials:
-   * **Admin Login:** `admin@meetingmind.com` / `password123`
-3. Inspect the **Kanban Requests Board**. Your newly submitted request is in the `ADMIN_INTAKE` column.
-4. Click on your request card to enter the **Request Folder**.
-5. Click **Transcribe Audio** to convert the audio to text.
-6. Click **Generate Compliance Minutes** to trigger the LLM agent review.
-7. Click the **Minutes Editor** tab. Modify any text in the transcript or summaries. Click **Lock Output for Dispatch**.
-8. In the header, click **Dispatch to Client**. The status updates to `DISPATCHED`.
-
-### Step 4: Client Verification & Voice Assistant
-1. Sign out of the Admin Portal and log back in as `client1@meetingmind.com`.
-2. Locate the report under **Delivered Reports**.
-3. Open the report in the BookViewer, showing the watermark now reads **"PREVIEW — NOT FOR DISTRIBUTION"**.
-4. Test the **Voice Assistant Widget** (floating icon at bottom right):
-   * Expand the widget and click the Microphone button (visual listening state).
-   * Type or speak: *"What retraining packages were decided?"* or *"Was a quorum met?"*.
-   * Verify the widget searches seeded `VoiceKnowledgeEntry` data and returns accurate French compliance citations.
+The provider index files (`src/lib/providers/*/index.ts`) read these env vars and return the correct adapter — no code changes needed.
 
 ---
 
-## 🚫 Known Scope Boundaries (Intentional Scoping Decisions)
+## 🎬 Demo Script (5–10 minutes)
 
-1.  **Simulated Payment Gateways:** Stripe integration is simulated. In production, the "Quotation Review" screen connects to a standard payment collection gateway.
-2.  **No Real Email Transports:** Notification dispatch triggers are logged locally to the console instead of sending real SMTP emails.
-3.  **Regional Scope:** Standardized specifically for French CSE boards. Additional compliance schemas (e.g., German BetrVG) are logically modeled in `regions.ts` but scoped out of active templates.
+### Act 1 — Marketing & Sample Reports (2 min)
+
+1. Open **http://localhost:3000** in incognito.
+2. Point out hero section, Before/After compliance comparison panels.
+3. Scroll to **Sample Report Library** — three tier cards.
+4. Click **Open Sample Report** on **Premium** card.
+   - BookViewer modal opens with animated page-flip and "SAMPLE REPORT" watermark.
+   - Flip through: Cover → Attendance table → Speaker bubbles → Alert callouts → Vote blocks.
+   - Click **📥 Download PDF** → real ~750 KB A4 PDF downloads with a corporate filename.
+   - Click **📝 Download DOCX** → real Word document downloads.
+5. Close modal. Open **Essential** card — only PDF button visible (DOCX is tier-gated).
+
+### Act 2 — Client Signup & Wizard (3 min)
+
+6. **Client Login:** `client1@meetingmind.com` / `password123`
+7. Note dashboard stats bar (Total, Active, Delivered, Avg Compliance %).
+8. Click **+ Launch Creation Wizard**.
+9. **Region:** France / CSE → Continue.
+10. **Details:** Fill name, location, type, date → Continue.
+11. **Tier:** Choose Premium → Continue.
+12. **Upload:** Drop any audio/video/PDF file → progress bar fills → auto-advances.
+13. **Quote:** Review pricing proposal → **Accept & Submit**.
+14. Dashboard shows request card as `Awaiting Operation Delivery`.
+
+### Act 3 — Admin Pipeline (3 min)
+
+15. Sign out → Login as `admin@meetingmind.com` / `password123`
+16. **Admin Queue** — Kanban board. New request in first column. Demo search/filter bar.
+17. Click request card → **Request Folder** opens (sidebar: cover preview + audio player).
+18. **Transcript tab** → **🎙️ Transcribe Audio** → status updates to `TRANSCRIBED`.
+19. **Generate tab** → **⚙️ Generate Compliance Minutes** → `IN_EDITING`.
+20. **Editor tab** → Edit a sentence → **Save** → **🔒 Lock Output**.
+21. Header → **Dispatch to Client** → `DISPATCHED`. ✅
+
+### Act 4 — Client Delivery & Voice Assistant (2 min)
+
+22. Sign out → Login as `client1@meetingmind.com`.
+23. Dashboard: request card now in **Delivered Reports** with green badge.
+24. **Open Report Viewer** → ReportBook full-screen (no watermark on client view).
+    - **📥 Download PDF** → A4 PDF streams and downloads.
+25. **Voice Assistant** (floating 🎙️ icon, bottom-right):
+    - Ask: *"What retraining packages were decided?"* → cited answer from knowledge base.
+    - Ask: *"Was quorum reached?"* → another knowledge-base hit.
+
+---
+
+## ⚠️ Known Scope Boundaries
+
+Deliberate scoping decisions for a time-boxed assignment, not bugs:
+
+| Item | Decision |
+|------|----------|
+| **Payment processing** | Quotation acceptance is a UI step only — no Stripe/PayPal. |
+| **Email notifications** | Status change emails are console-logged, not sent over SMTP. |
+| **Additional regions** | France CSE only. Germany BetrVG and Spain LOLS are modelled in `regions.ts` but `active: false`. |
+| **Multi-tenancy** | One admin role, single organization — no tenant isolation. |
+| **File storage** | Files land in `public/uploads/` on local disk — no S3/GCS. |
+| **Real-time updates** | Status changes require a page refresh — no WebSocket/SSE. |
+| **PDF font embedding** | Google Fonts load from CDN in the Puppeteer render page — offline environments need local font embedding. |
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router, Turbopack) |
+| Language | TypeScript 5 |
+| Styling | Vanilla CSS design system + Tailwind 4 utilities |
+| Auth | NextAuth v5 (Credentials + Prisma adapter) |
+| Database | SQLite via `better-sqlite3` + Prisma 7 |
+| Animation | Framer Motion (page-flip book, micro-animations) |
+| Rich Text | TipTap v3 (transcript editor) |
+| PDF | Puppeteer 25 (headless Chrome → A4 PDF) |
+| DOCX | `docx` v9 (programmatic Word generation) |
+| STT | Deepgram (+ mock adapter) |
+| LLM | OpenAI / Gemini / DeepSeek (+ mock adapter) |
+| Charts | Recharts (compliance score gauges) |

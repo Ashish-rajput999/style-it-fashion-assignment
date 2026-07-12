@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "setup": "prisma db push --force-reset && prisma generate && prisma db seed"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
