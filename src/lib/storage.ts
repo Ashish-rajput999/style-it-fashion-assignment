@@ -17,7 +17,11 @@ class LocalStorageProvider implements StorageProvider {
   private uploadDir: string
 
   constructor() {
-    this.uploadDir = process.env.UPLOAD_DIR ?? './public/uploads'
+    if (process.env.VERCEL) {
+      this.uploadDir = '/tmp'
+    } else {
+      this.uploadDir = process.env.UPLOAD_DIR ?? './public/uploads'
+    }
   }
 
   async save(buffer: Buffer, filename: string, folder = 'uploads'): Promise<string> {
@@ -34,13 +38,15 @@ class LocalStorageProvider implements StorageProvider {
   }
 
   async read(fileUrl: string): Promise<Buffer> {
-    const filePath = path.join(process.cwd(), 'public', fileUrl)
+    const baseDir = process.env.VERCEL ? '/tmp' : path.join(process.cwd(), 'public')
+    const filePath = path.join(baseDir, fileUrl)
     const data = await fs.readFile(filePath)
     return Buffer.from(data)
   }
 
   async delete(fileUrl: string): Promise<void> {
-    const filePath = path.join(process.cwd(), 'public', fileUrl)
+    const baseDir = process.env.VERCEL ? '/tmp' : path.join(process.cwd(), 'public')
+    const filePath = path.join(baseDir, fileUrl)
     await fs.unlink(filePath).catch(() => undefined)
   }
 
