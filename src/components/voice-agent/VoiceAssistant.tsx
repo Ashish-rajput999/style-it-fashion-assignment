@@ -44,19 +44,21 @@ export function VoiceAssistant() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isListening, isSpeaking])
 
+  const handleStopSpeaking = () => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+    }
+    setTimeout(() => {
+      setIsSpeaking(false)
+    }, 0)
+  }
+
   // Stop speaking when widget closes
   useEffect(() => {
     if (!isOpen) {
       handleStopSpeaking()
     }
   }, [isOpen])
-
-  const handleStopSpeaking = () => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel()
-    }
-    setIsSpeaking(false)
-  }
 
   const speakText = (text: string) => {
     if (isMuted || typeof window === 'undefined' || !window.speechSynthesis) return

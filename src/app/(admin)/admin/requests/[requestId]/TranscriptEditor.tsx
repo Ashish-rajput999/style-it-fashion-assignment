@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback, useRef, useMemo } from 'react'
 
 export interface Segment {
   speaker: string
@@ -33,10 +33,8 @@ const SPEAKER_COLORS = [
 ]
 
 function getSpeakerColor(speaker: string, speakerIndex: Map<string, number>) {
-  if (!speakerIndex.has(speaker)) {
-    speakerIndex.set(speaker, speakerIndex.size % SPEAKER_COLORS.length)
-  }
-  return SPEAKER_COLORS[speakerIndex.get(speaker)!]
+  const idx = speakerIndex.get(speaker) ?? 0
+  return SPEAKER_COLORS[idx % SPEAKER_COLORS.length]
 }
 
 interface SegmentRowProps {
@@ -170,9 +168,18 @@ export function TranscriptEditor({
   const [isDirty, setIsDirty] = useState(false)
   const [savedEditsExist, setSavedEditsExist] = useState(hasSavedEdits)
 
-  // Memoised speaker colour map (reset when segments change shape)
-  const speakerIndex = useRef(new Map<string, number>())
-  const allSpeakers = [...new Set(segments.map((s) => s.speaker))]
+  // Memoised speaker list and colour map
+  const allSpeakers = useMemo(() => {
+    return [...new Set(segments.map((s) => s.speaker))]
+  }, [segments])
+  
+  const speakerIndexMap = useMemo(() => {
+    const map = new Map<string, number>()
+    allSpeakers.forEach((sp, idx) => {
+      map.set(sp, idx)
+    })
+    return map
+  }, [allSpeakers])
 
   const runTranscription = useCallback(async () => {
     if (savedEditsExist) {
@@ -193,7 +200,6 @@ export function TranscriptEditor({
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Transcription failed')
-      speakerIndex.current = new Map()
       setSegments(data.segments)
       setIsDirty(false)
       setSaveStatus('idle')
@@ -341,7 +347,7 @@ export function TranscriptEditor({
           <div className="px-4 py-3 border-b border-gray-100 flex flex-wrap gap-2 bg-gray-50 rounded-t-2xl">
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mr-1 self-center">Speakers:</span>
             {allSpeakers.map((sp) => {
-              const c = getSpeakerColor(sp, speakerIndex.current)
+              const c = getSpeakerColor(sp, speakerIndexMap)
               return (
                 <span
                   key={sp}
@@ -362,7 +368,7 @@ export function TranscriptEditor({
                 key={i}
                 seg={seg}
                 index={i}
-                speakerIndex={speakerIndex.current}
+                speakerIndex={speakerIndexMap}
                 allSpeakers={allSpeakers}
                 onChange={updateSegment}
               />
