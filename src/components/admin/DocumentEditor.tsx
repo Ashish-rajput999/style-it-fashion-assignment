@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import Underline from '@tiptap/extension-underline'
 import CharacterCount from '@tiptap/extension-character-count'
 import Placeholder from '@tiptap/extension-placeholder'
 
@@ -54,6 +55,7 @@ export function DocumentEditor({ outputId, initialContent, isLocked, onLockChang
   const editor = useEditor({
     extensions: [
       StarterKit,
+      Underline,
       CharacterCount,
       Placeholder.configure({ placeholder: 'Start editing the meeting minutes document…' }),
     ],
@@ -262,6 +264,13 @@ export function DocumentEditor({ outputId, initialContent, isLocked, onLockChang
             title="Strikethrough"
           >
             <s>S</s>
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            active={editor.isActive('underline')}
+            title="Underline (Ctrl+U)"
+          >
+            <span style={{ textDecoration: 'underline' }}>U</span>
           </ToolbarButton>
           <div className="w-px h-5 bg-gray-200 mx-1" />
           <ToolbarButton

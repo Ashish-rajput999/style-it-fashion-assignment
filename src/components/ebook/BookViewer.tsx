@@ -205,7 +205,6 @@ export const BookViewer: React.FC<BookViewerProps> = ({
           <AnimatePresence
             initial={false}
             mode="wait"
-            onExitComplete={() => setIsAnimating(false)}
           >
             <motion.div
               key={spread}
@@ -215,6 +214,7 @@ export const BookViewer: React.FC<BookViewerProps> = ({
               animate={pageVariants.center}
               exit={direction === 'next' ? pageVariants.exitToLeft : pageVariants.exitToRight}
               onAnimationStart={() => setIsAnimating(true)}
+              onAnimationComplete={() => setIsAnimating(false)}
             >
               {/* Left page */}
               <div className={`${isMobile ? 'w-full' : 'w-1/2'} h-full border-r border-gray-300/70`}>

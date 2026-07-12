@@ -25,8 +25,8 @@ export default async function HomePage() {
 
     const orderedTiers = ['ESSENTIAL', 'SCOPE', 'PREMIUM']
     sortedReports = meetings
-      .filter((m) => m.generatedOutputs.length > 0)
-      .map((m) => ({
+      .filter((m: any) => m.generatedOutputs.length > 0)
+      .map((m: any) => ({
         id: m.id,
         title: m.title,
         meetingDate: m.meetingDate.toISOString(),
@@ -38,7 +38,7 @@ export default async function HomePage() {
         contentJson: m.generatedOutputs[0].contentJson,
         outputId: m.generatedOutputs[0].id,
       }))
-      .sort((a, b) => orderedTiers.indexOf(a.tier) - orderedTiers.indexOf(b.tier))
+      .sort((a: any, b: any) => orderedTiers.indexOf(a.tier) - orderedTiers.indexOf(b.tier))
   } catch (err) {
     console.error('Error fetching sample reports:', err)
   }
@@ -346,18 +346,18 @@ export default async function HomePage() {
           </div>
           <div>
             <h4 className="font-bold text-xs text-indigo-400 uppercase tracking-widest mb-4">Company</h4>
-            <ul className="space-y-2 text-xs text-gray-400">
-              <li><span className="hover:text-white transition-colors cursor-pointer">About Us</span></li>
-              <li><span className="hover:text-white transition-colors cursor-pointer">Contact Support</span></li>
-              <li><span className="hover:text-white transition-colors cursor-pointer">Security & Privacy</span></li>
+            <ul className="space-y-2 text-xs text-gray-500">
+              <li>About Us</li>
+              <li>Contact Support</li>
+              <li>Security &amp; Privacy</li>
             </ul>
           </div>
         </div>
         <div className="max-w-6xl mx-auto w-full border-t border-white/5 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-gray-500">
           <p>© 2026 Styleit Fashion / MeetingMind. All rights reserved.</p>
-          <div className="flex gap-4">
-            <span className="hover:text-white cursor-pointer">Terms of Service</span>
-            <span className="hover:text-white cursor-pointer">Privacy Policy</span>
+          <div className="flex gap-4 text-gray-500">
+            <span>Terms of Service</span>
+            <span>Privacy Policy</span>
           </div>
         </div>
       </footer>

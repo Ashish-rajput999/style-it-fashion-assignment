@@ -14,7 +14,10 @@ export async function POST(req: NextRequest) {
     const { draftId } = await req.json()
     if (!draftId) return NextResponse.json({ error: 'Missing draftId.' }, { status: 400 })
 
-    const meeting = await db.meetingRequest.findUnique({ where: { id: draftId } })
+    const meeting = await db.meetingRequest.findUnique({
+      where: { id: draftId },
+      include: { clientProfile: true },
+    })
     if (!meeting) return NextResponse.json({ error: 'Meeting not found.' }, { status: 404 })
 
     // ── Stage 1: Transcribe ───────────────────────────────────────────────────
@@ -43,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     const llm = getLLMProvider()
     // Build context object: segments + meeting metadata so the LLM mock
-    // reflects the real title/date/location the user filled in the wizard
+    // reflects the real title/date/location/company the user filled in the wizard
     const contextPayload = JSON.stringify({
       segments: sttResult.segments,
       context: {
@@ -53,6 +56,7 @@ export async function POST(req: NextRequest) {
         meetingType: meeting.meetingType,
         complianceType: meeting.complianceType,
         region: meeting.region,
+        company: meeting.clientProfile?.companyName,
       },
     })
 

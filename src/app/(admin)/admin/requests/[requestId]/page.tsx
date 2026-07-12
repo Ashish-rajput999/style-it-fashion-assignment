@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { auth } from '@/lib/auth'
+import { auth, signOut } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect, notFound } from 'next/navigation'
 import { CoverPage } from '@/components/report/CoverPage'
@@ -116,7 +116,7 @@ export default async function RequestDetailPage({ params, searchParams }: Reques
   const activeTab = ['transcript', 'generate', 'outputs', 'notes'].includes(tab) ? tab : 'transcript'
 
   // Serialise outputs for GenerationPanel
-  const serialisedOutputs = meeting.generatedOutputs.map(o => ({
+  const serialisedOutputs = meeting.generatedOutputs.map((o: any) => ({
     id: o.id,
     type: o.type,
     contentJson: o.contentJson,
@@ -124,7 +124,7 @@ export default async function RequestDetailPage({ params, searchParams }: Reques
     createdAt: o.createdAt.toISOString(),
   }))
 
-  const reportOutput = meeting.generatedOutputs.find((o) => o.type === 'MINUTES_REPORT')
+  const reportOutput = meeting.generatedOutputs.find((o: any) => o.type === 'MINUTES_REPORT')
   const isDispatchable = !!reportOutput && reportOutput.locked
   let disabledReason = undefined
   if (!reportOutput) {
@@ -173,7 +173,10 @@ export default async function RequestDetailPage({ params, searchParams }: Reques
           <span className="text-[9px] font-extrabold uppercase tracking-widest px-2 py-1 rounded-full bg-white/10 text-gray-300">
             {meeting.status.replace(/_/g, ' ')}
           </span>
-          <form action="/api/auth/signout" method="POST">
+          <form action={async () => {
+            'use server'
+            await signOut({ redirectTo: '/' })
+          }}>
             <button className="bg-white/10 hover:bg-white/20 text-white font-bold py-1.5 px-3 rounded-lg transition-all text-xs">
               Sign Out
             </button>
@@ -393,7 +396,7 @@ export default async function RequestDetailPage({ params, searchParams }: Reques
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {meeting.generatedOutputs.map((output) => (
+                    {meeting.generatedOutputs.map((output: any) => (
                       <div
                         key={output.id}
                         className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between"

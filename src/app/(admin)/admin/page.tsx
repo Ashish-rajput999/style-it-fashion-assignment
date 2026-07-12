@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { auth } from '@/lib/auth'
+import { auth, signOut } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { AdminQueueClient } from './AdminQueueClient'
@@ -21,7 +21,7 @@ export default async function AdminQueuePage() {
   })
 
   // Pass serialisable data to the client component
-  const serialised = meetings.map((m) => ({
+  const serialised = meetings.map((m: any) => ({
     id: m.id,
     title: m.title,
     status: m.status,
@@ -61,7 +61,10 @@ export default async function AdminQueuePage() {
 
         <div className="flex items-center gap-3 text-xs">
           <span className="text-gray-400 hidden sm:block">{session.user.name}</span>
-          <form action="/api/auth/signout" method="POST">
+          <form action={async () => {
+            'use server'
+            await signOut({ redirectTo: '/' })
+          }}>
             <button className="bg-white/10 hover:bg-white/20 text-white font-bold py-1.5 px-3 rounded-lg transition-all">
               Sign Out
             </button>

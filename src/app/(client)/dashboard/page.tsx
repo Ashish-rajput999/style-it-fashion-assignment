@@ -1,5 +1,5 @@
 import React from 'react'
-import { auth } from '@/lib/auth'
+import { auth, signOut } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -103,13 +103,13 @@ export default async function ClientDashboardPage() {
 
   // Calculate top-row dashboard stats
   const totalCount = meetings.length
-  const activeCount = meetings.filter((m) => m.status !== 'DISPATCHED' && m.status !== 'DRAFT').length
-  const deliveredCount = meetings.filter((m) => m.status === 'DISPATCHED').length
+  const activeCount = meetings.filter((m: any) => m.status !== 'DISPATCHED' && m.status !== 'DRAFT').length
+  const deliveredCount = meetings.filter((m: any) => m.status === 'DISPATCHED').length
 
   // Calculate overall compliance average from dispatched reports
   let totalScore = 0
   let scoreCount = 0
-  meetings.forEach((m) => {
+  meetings.forEach((m: any) => {
     if (m.status === 'DISPATCHED' && m.generatedOutputs[0]?.contentJson) {
       try {
         const report = JSON.parse(m.generatedOutputs[0].contentJson)
@@ -131,8 +131,8 @@ export default async function ClientDashboardPage() {
   const complianceAvg = scoreCount > 0 ? Math.round(totalScore / scoreCount) : null
 
   // Group meetings into categories
-  const activeMeetings = meetings.filter((m) => m.status !== 'DISPATCHED')
-  const deliveredMeetings = meetings.filter((m) => m.status === 'DISPATCHED')
+  const activeMeetings = meetings.filter((m: any) => m.status !== 'DISPATCHED')
+  const deliveredMeetings = meetings.filter((m: any) => m.status === 'DISPATCHED')
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -161,7 +161,10 @@ export default async function ClientDashboardPage() {
             >
               <span className="text-sm">+</span> New Report
             </Link>
-            <form action="/api/auth/signout" method="POST" className="m-0">
+            <form action={async () => {
+              'use server'
+              await signOut({ redirectTo: '/' })
+            }} className="m-0">
               <button
                 type="submit"
                 className="bg-white/10 hover:bg-white/20 text-white border border-white/10 font-bold text-xs py-2 px-4 rounded-xl transition-all"
@@ -232,7 +235,7 @@ export default async function ClientDashboardPage() {
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Active & In-Progress Requests</h3>
               {activeMeetings.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {activeMeetings.map((meeting) => {
+                  {activeMeetings.map((meeting: any) => {
                     const statusConfig = STATUS_MAP[meeting.status] || {
                       label: meeting.status,
                       colorClass: 'bg-gray-100 text-gray-700 border-gray-200',
@@ -317,7 +320,7 @@ export default async function ClientDashboardPage() {
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Delivered Reports</h3>
               {deliveredMeetings.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {deliveredMeetings.map((meeting) => {
+                  {deliveredMeetings.map((meeting: any) => {
                     const tierConfig = getTierStyle(meeting.tier)
                     return (
                       <div

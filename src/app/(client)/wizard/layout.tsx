@@ -33,6 +33,13 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
           </div>
           <div className="wizard-header-right">
             <span className="wizard-ai-badge">✦ AI Powered</span>
+            <a
+              href="/dashboard"
+              className="text-[10px] font-bold text-gray-400 hover:text-gray-700 transition-colors border border-gray-200 hover:border-gray-400 rounded-lg px-3 py-1.5 ml-3"
+              title="Cancel and return to your dashboard"
+            >
+              ✕ Cancel
+            </a>
           </div>
         </div>
       </header>

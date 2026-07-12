@@ -74,7 +74,14 @@ export default function WizardRegionPage() {
           <h2 className="wizard-card-title">Create Meeting Report</h2>
           <p className="wizard-card-subtitle">Choose your compliance to begin.</p>
           <div className="wizard-card-controls">
-            <button className="wizard-lang-btn">🇫🇷 French ▾</button>
+            <span
+              className="wizard-lang-btn"
+              style={{ cursor: 'default', opacity: 0.7 }}
+              title="Language is fixed to French for CSE compliance"
+              aria-label="Language: French (fixed)"
+            >
+              🇫🇷 French
+            </span>
           </div>
         </div>
 
@@ -134,9 +141,12 @@ export default function WizardRegionPage() {
                 id={`compliance-card-${ct.code}`}
               >
                 <div className="wizard-compliance-icon">
-                  {ct.active ? '🛡️' : '?'}
+                  {ct.active ? '🛡️' : '🔒'}
                 </div>
                 <span className="wizard-compliance-name">{ct.name}</span>
+                {!ct.active && (
+                  <span className="wizard-coming-soon">Coming soon</span>
+                )}
                 {ct.code === selectedCompliance && ct.active && (
                   <span className="wizard-compliance-check">✓</span>
                 )}
@@ -163,7 +173,13 @@ export default function WizardRegionPage() {
           >
             {loading ? 'Starting…' : 'Continue →'}
           </button>
-          <button className="wizard-analyzer-btn">
+          <button
+            className="wizard-analyzer-btn"
+            disabled
+            title="Report Analyzer is available after completing the wizard and generating a report — access it from the Admin Panel dashboard."
+            aria-disabled="true"
+            style={{ opacity: 0.45, cursor: 'not-allowed', pointerEvents: 'none' }}
+          >
             ✦ Report Analyzer
           </button>
         </div>

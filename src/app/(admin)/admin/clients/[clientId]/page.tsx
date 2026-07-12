@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { auth } from '@/lib/auth'
+import { auth, signOut } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect, notFound } from 'next/navigation'
 import { ClientProfileClient } from './ClientProfileClient'
@@ -85,7 +85,10 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
           </p>
         </div>
         <div className="ml-auto">
-          <form action="/api/auth/signout" method="POST">
+          <form action={async () => {
+            'use server'
+            await signOut({ redirectTo: '/' })
+          }}>
             <button className="bg-white/10 hover:bg-white/20 text-white font-bold py-1.5 px-3 rounded-lg transition-all text-xs">
               Sign Out
             </button>
