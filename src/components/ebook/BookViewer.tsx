@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 interface BookViewerProps {
   children: React.ReactNode[]
+  watermarkText?: string
+  bindingLabel?: string
 }
 
 // Framer Motion 3D page-flip variants
@@ -57,7 +59,7 @@ const pageVariants = {
   },
 }
 
-const WatermarkOverlay = () => (
+const WatermarkOverlay = ({ text }: { text?: string }) => (
   <div
     className="absolute inset-0 pointer-events-none z-20 overflow-hidden select-none"
     aria-hidden="true"
@@ -74,7 +76,7 @@ const WatermarkOverlay = () => (
           letterSpacing: '8px',
         }}
       >
-        {Array(8).fill('PREVIEW — NOT FOR DISTRIBUTION').join('    ')}
+        {Array(8).fill(text || 'PREVIEW — NOT FOR DISTRIBUTION').join('    ')}
       </div>
     ))}
   </div>
@@ -84,10 +86,12 @@ const PageShell = ({
   children,
   pageNumber,
   side,
+  watermarkText,
 }: {
   children: React.ReactNode
   pageNumber: number
   side: 'left' | 'right'
+  watermarkText?: string
 }) => (
   <div
     className="relative flex flex-col overflow-auto bg-white h-full"
@@ -102,7 +106,7 @@ const PageShell = ({
     <div className="relative z-10 flex-1 p-6 md:p-8 overflow-auto">{children}</div>
 
     {/* Watermark on every page */}
-    <WatermarkOverlay />
+    <WatermarkOverlay text={watermarkText} />
 
     {/* Page number */}
     <div
@@ -115,7 +119,11 @@ const PageShell = ({
   </div>
 )
 
-export const BookViewer: React.FC<BookViewerProps> = ({ children }) => {
+export const BookViewer: React.FC<BookViewerProps> = ({
+  children,
+  watermarkText,
+  bindingLabel,
+}) => {
   const [spread, setSpread] = useState(0) // which spread (pair of pages) we're on
   const [direction, setDirection] = useState<'next' | 'prev'>('next')
   const [isAnimating, setIsAnimating] = useState(false)
@@ -154,7 +162,7 @@ export const BookViewer: React.FC<BookViewerProps> = ({ children }) => {
         {/* Book binding label */}
         <div className="flex justify-center mb-2">
           <span className="text-[10px] font-bold tracking-widest text-white/30 uppercase font-mono">
-            Instant Preview — Read Only
+            {bindingLabel || 'Instant Preview — Read Only'}
           </span>
         </div>
 
@@ -193,14 +201,14 @@ export const BookViewer: React.FC<BookViewerProps> = ({ children }) => {
             >
               {/* Left page */}
               <div className="w-1/2 h-full border-r border-gray-300/70">
-                <PageShell pageNumber={leftPageNum} side="left">
+                <PageShell pageNumber={leftPageNum} side="left" watermarkText={watermarkText}>
                   {leftPage}
                 </PageShell>
               </div>
 
               {/* Right page */}
               <div className="w-1/2 h-full border-l border-gray-300/70">
-                <PageShell pageNumber={rightPageNum} side="right">
+                <PageShell pageNumber={rightPageNum} side="right" watermarkText={watermarkText}>
                   {rightPage ?? (
                     <div className="flex h-full items-center justify-center text-gray-300">
                       <p className="text-sm font-serif italic">End of preview</p>
