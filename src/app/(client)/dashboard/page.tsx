@@ -3,7 +3,6 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import type { Tier } from '@/lib/tiers'
 
 // Status translation mapping
 const STATUS_MAP: Record<string, { label: string; colorClass: string; desc: string }> = {
