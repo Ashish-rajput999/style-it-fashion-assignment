@@ -50,7 +50,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
     },
   }
 
-  const serialisedRequests = requests.map((r) => ({
+  const serialisedRequests = requests.map((r: any) => ({
     id: r.id,
     title: r.title,
     status: r.status,
@@ -59,7 +59,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
     updatedAt: r.updatedAt.toISOString(),
   }))
 
-  const serialisedOtherClients = otherClients.map((c) => ({
+  const serialisedOtherClients = otherClients.map((c: any) => ({
     id: c.id,
     companyName: c.companyName,
     email: c.user.email,
