@@ -1,10 +1,26 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url)
+    const reset = searchParams.get('reset') === 'true'
+
+    if (reset) {
+      // Find all seeded meetings by company name or reference patterns
+      await db.meetingRequest.updateMany({
+        where: {
+          tier: 'PREMIUM',
+          status: 'TRANSCRIBED',
+        },
+        data: {
+          status: 'DISPATCHED',
+        },
+      })
+    }
+
     const meetings = await db.meetingRequest.findMany({
       include: {
         generatedOutputs: true,
@@ -16,6 +32,7 @@ export async function GET() {
       },
     })
     return NextResponse.json({
+      resetPerformed: reset,
       meetings: meetings.map((m) => ({
         id: m.id,
         title: m.title,
