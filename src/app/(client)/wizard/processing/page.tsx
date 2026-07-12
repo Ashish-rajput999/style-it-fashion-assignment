@@ -75,23 +75,20 @@ export default function ProcessingPage() {
         })
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || 'Processing failed.')
+
+        // Success: Trigger done animation and navigate
+        setDone(true)
+        setTimeout(() => {
+          router.push(`/wizard/preview?draftId=${draftId}`)
+        }, 1200)
       } catch (err: any) {
         setError(err.message)
       }
     }
     runProcessing()
 
-    // Complete after 9s, then redirect to the live book preview page
-    const doneTimer = setTimeout(() => {
-      setDone(true)
-      setTimeout(() => {
-        router.push(`/wizard/preview?draftId=${draftId}`)
-      }, 1200)
-    }, 9000)
-
     return () => {
       intervals.forEach(clearTimeout)
-      clearTimeout(doneTimer)
     }
   }, [draftId, router])
 

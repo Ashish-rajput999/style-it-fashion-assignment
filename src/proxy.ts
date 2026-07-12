@@ -16,7 +16,7 @@ export default auth((req: NextRequest & { auth: { user?: { role?: string } } | n
       return NextResponse.redirect(new URL('/login', req.url))
     }
     if (userRole !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/wizard/region', req.url))
+      return NextResponse.redirect(new URL('/dashboard', req.url))
     }
     return NextResponse.next()
   }
@@ -44,7 +44,7 @@ export default auth((req: NextRequest & { auth: { user?: { role?: string } } | n
     if (userRole === 'ADMIN') {
       return NextResponse.redirect(new URL('/admin', req.url))
     }
-    return NextResponse.redirect(new URL('/wizard/region', req.url))
+    return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
   return NextResponse.next()
