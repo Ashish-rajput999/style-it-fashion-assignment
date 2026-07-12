@@ -1,34 +1,51 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-let prismaClient: PrismaClient
+function createPrismaClient(): PrismaClient {
+  const dbUrl = process.env.DATABASE_URL || 'file:./dev.db'
+  const isPostgres =
+    dbUrl.startsWith('postgresql://') || dbUrl.startsWith('postgres://')
 
-// Default to sqlite file relative to current working directory
-const dbUrl = process.env.DATABASE_URL || 'file:./dev.db'
-
-if (process.env.NODE_ENV === 'production') {
-  const adapter = new PrismaBetterSqlite3({ url: dbUrl })
-  prismaClient = new PrismaClient({ adapter })
-} else {
-  if (!globalForPrisma.prisma) {
+  if (isPostgres) {
+    // Production / Neon / Supabase — use @prisma/adapter-pg
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Pool } = require('pg')
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { PrismaPg } = require('@prisma/adapter-pg')
+    const pool = new Pool({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } })
+    const adapter = new PrismaPg(pool)
+    return new PrismaClient({ adapter })
+  } else {
+    // Local dev — use better-sqlite3 adapter
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3')
     const adapter = new PrismaBetterSqlite3({ url: dbUrl })
-    globalForPrisma.prisma = new PrismaClient({ adapter })
+    return new PrismaClient({ adapter })
   }
-  prismaClient = globalForPrisma.prisma
 }
 
-// Auto-seed if the database is empty in non-production environments
-if (process.env.NODE_ENV !== 'production') {
-  prismaClient.user.count()
+let prismaClient: PrismaClient
+
+if (process.env.NODE_ENV === 'production') {
+  prismaClient = createPrismaClient()
+} else {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient()
+  }
+  prismaClient = globalForPrisma.prisma
+
+  // Auto-seed if the local database is empty
+  prismaClient.user
+    .count()
     .then((count) => {
       if (count === 0) {
-        console.log('⚠️ Database is empty. Auto-seeding database...')
+        console.log('⚠️  Database is empty. Auto-seeding...')
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { exec } = require('child_process')
-        exec('pnpm prisma db seed', (error: any, stdout: any, stderr: any) => {
+        exec('pnpm prisma db seed', (error: Error | null, stdout: string) => {
           if (error) {
             console.error(`❌ Auto-seeding failed: ${error.message}`)
             return
@@ -37,8 +54,8 @@ if (process.env.NODE_ENV !== 'production') {
         })
       }
     })
-    .catch((err) => {
-      console.warn('⚠️ Could not check user count for auto-seeding:', err.message)
+    .catch((err: Error) => {
+      console.warn('⚠️  Could not check user count for auto-seeding:', err.message)
     })
 }
 

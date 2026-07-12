@@ -111,7 +111,16 @@ export default function WizardUploadPage() {
           Supported formats: MP3, WAV, M4A, OGG, MP4, MOV, WebM, PDF, DOCX — up to 500 MB
         </p>
 
-        {/* Drop zone */}
+        {process.env.NEXT_PUBLIC_VERCEL === '1' && (
+          <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 leading-relaxed">
+            <strong>⚠️ Demo deployment:</strong> File upload and AI transcription require a
+            self-hosted environment. For this live demo, the admin panel is pre-loaded with
+            sample audio transcripts and generated reports — explore the full admin workflow
+            there without needing to upload a file.
+          </div>
+        )}
+
+
         <div
           {...getRootProps()}
           className={[

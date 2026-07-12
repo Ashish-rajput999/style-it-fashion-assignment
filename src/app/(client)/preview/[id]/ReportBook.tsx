@@ -30,6 +30,7 @@ interface ReportBookProps {
 export function ReportBook({ meeting, report }: ReportBookProps) {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [exporting, setExporting] = useState<'pdf' | 'docx' | null>(null)
+  const isVercel = process.env.NEXT_PUBLIC_VERCEL === '1'
 
   const handleExport = async (format: 'pdf' | 'docx') => {
     if (!meeting.outputId) return
@@ -105,15 +106,25 @@ export function ReportBook({ meeting, report }: ReportBookProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => handleExport('pdf')}
-            disabled={exporting !== null}
-            aria-label="Download report as PDF document"
-            title="Download report as PDF document"
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-brand transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
-          >
-            {exporting === 'pdf' ? '⏳ Exporting...' : '📥 Download PDF'}
-          </button>
+          {isVercel ? (
+            <button
+              disabled
+              title="PDF export requires a self-hosted deployment with Chromium. Use DOCX instead."
+              className="bg-white/5 border border-white/10 text-gray-500 font-bold text-xs py-2.5 px-4 rounded-xl flex items-center gap-1.5 cursor-not-allowed"
+            >
+              📥 PDF (self-hosted only)
+            </button>
+          ) : (
+            <button
+              onClick={() => handleExport('pdf')}
+              disabled={exporting !== null}
+              aria-label="Download report as PDF document"
+              title="Download report as PDF document"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-brand transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+            >
+              {exporting === 'pdf' ? '⏳ Exporting...' : '📥 Download PDF'}
+            </button>
+          )}
           {meeting.tier !== 'ESSENTIAL' && (
             <button
               onClick={() => handleExport('docx')}

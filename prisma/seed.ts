@@ -1,10 +1,24 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import bcrypt from 'bcryptjs'
 
 const dbUrl = process.env.DATABASE_URL || 'file:./dev.db'
-const adapter = new PrismaBetterSqlite3({ url: dbUrl })
-const prisma = new PrismaClient({ adapter })
+const isPostgres = dbUrl.startsWith('postgresql://') || dbUrl.startsWith('postgres://')
+
+let prisma: PrismaClient
+if (isPostgres) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Pool } = require('pg')
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismaPg } = require('@prisma/adapter-pg')
+  const pool = new Pool({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } })
+  const adapter = new PrismaPg(pool)
+  prisma = new PrismaClient({ adapter })
+} else {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3')
+  const adapter = new PrismaBetterSqlite3({ url: dbUrl })
+  prisma = new PrismaClient({ adapter })
+}
 
 async function main() {
   console.log('🌱 Starting database seeding...')

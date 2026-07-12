@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "src/app/api/admin/transcribe/route.ts": { "maxDuration": 60 },
+    "src/app/api/admin/generate/route.ts": { "maxDuration": 60 },
+    "src/app/api/export/docx/[outputId]/route.ts": { "maxDuration": 30 },
+    "src/app/api/export/pdf/[outputId]/route.ts": { "maxDuration": 10 },
+    "src/app/api/wizard/process/route.ts": { "maxDuration": 60 }
+  },
+  "buildCommand": "npx prisma generate && next build"
+}

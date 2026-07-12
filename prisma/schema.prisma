@@ -6,8 +6,7 @@ generator client {
 }
 
 datasource db {
-  // Swap the provider to "postgresql" and update DATABASE_URL inside prisma.config.ts to move to Postgres — no other changes needed.
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 // ─────────────────────────────────────────────
