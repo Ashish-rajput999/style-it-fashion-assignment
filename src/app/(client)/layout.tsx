@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import type { Metadata } from 'next'
+import { VoiceAssistant } from '@/components/voice-agent/VoiceAssistant'
 
 export const metadata: Metadata = {
   title: 'MeetingMind — Client Portal',
@@ -21,6 +22,11 @@ export default async function ClientLayout({ children }: { children: React.React
     redirect('/login')
   }
 
-  return <>{children}</>
+  return (
+    <>
+      {children}
+      <VoiceAssistant />
+    </>
+  )
 }
 
