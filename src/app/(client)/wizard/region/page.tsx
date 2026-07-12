@@ -47,8 +47,8 @@ export default function WizardRegionPage() {
 
   return (
     <div className="wizard-region-layout">
-      {/* Left: brand panel */}
-      <div className="wizard-brand-panel">
+      {/* Left: brand panel — hidden on mobile, visible on large screens */}
+      <div className="wizard-brand-panel hidden lg:flex">
         <p className="wizard-brand-tag">● AI POWERED</p>
         <h1 className="wizard-brand-headline">
           Turn Meeting into{' '}
@@ -169,8 +169,8 @@ export default function WizardRegionPage() {
         </div>
       </div>
 
-      {/* Right: tier preview cards */}
-      <div className="wizard-tier-panel">
+      {/* Right: tier preview cards — hidden on mobile, visible on large screens */}
+      <div className="wizard-tier-panel hidden lg:block">
         {TIERS.map((t) => (
           <div key={t.id} className="wizard-tier-card">
             <div className="wizard-tier-card-header">

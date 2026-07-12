@@ -22,15 +22,47 @@ interface ReportBookProps {
     meetingType: string | null
     status: string
     tier: string
+    outputId: string
   }
   report: MinutesReport
 }
 
 export function ReportBook({ meeting, report }: ReportBookProps) {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [exporting, setExporting] = useState<'pdf' | 'docx' | null>(null)
 
-  const handleDownloadPDF = () => {
-    setToastMessage('Export coming in a later phase (Phase 12 PDF Export)')
+  const handleExport = async (format: 'pdf' | 'docx') => {
+    if (!meeting.outputId) return
+    setExporting(format)
+    try {
+      const res = await fetch(`/api/export/${format}/${meeting.outputId}`)
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}))
+        throw new Error(errJson.message || `${format.toUpperCase()} generation failed`)
+      }
+      
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      
+      const contentDisposition = res.headers.get('content-disposition')
+      let filename = `report.${format}`
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/)
+        if (match) filename = match[1]
+      }
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err: any) {
+      console.error(err)
+      setToastMessage(`❌ Error: ${err.message || 'Export failed'}`)
+    } finally {
+      setExporting(null)
+    }
   }
 
   // Auto-hide toast after 3 seconds
@@ -56,7 +88,12 @@ export function ReportBook({ meeting, report }: ReportBookProps) {
       {/* Sticky top bar */}
       <div className="bg-[#0F1226] text-white py-4 px-6 md:px-12 flex justify-between items-center shadow-lg sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center font-bold text-white transition-all text-xs">
+          <Link
+            href="/dashboard"
+            aria-label="Back to dashboard"
+            title="Back to dashboard"
+            className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center font-bold text-white transition-all text-xs"
+          >
             ←
           </Link>
           <div>
@@ -69,11 +106,25 @@ export function ReportBook({ meeting, report }: ReportBookProps) {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={handleDownloadPDF}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2 px-4 rounded-xl shadow-brand transition-all flex items-center gap-1.5"
+            onClick={() => handleExport('pdf')}
+            disabled={exporting !== null}
+            aria-label="Download report as PDF document"
+            title="Download report as PDF document"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-brand transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
           >
-            📥 Download PDF
+            {exporting === 'pdf' ? '⏳ Exporting...' : '📥 Download PDF'}
           </button>
+          {meeting.tier !== 'ESSENTIAL' && (
+            <button
+              onClick={() => handleExport('docx')}
+              disabled={exporting !== null}
+              aria-label="Download report as Word document"
+              title="Download report as Word document"
+              className="bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+            >
+              {exporting === 'docx' ? '⏳ Exporting...' : '📝 Download DOCX'}
+            </button>
+          )}
         </div>
       </div>
 

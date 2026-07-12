@@ -127,8 +127,12 @@ export function PromptEditor({ initialPrompts }: PromptEditorProps) {
         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Prompt Templates</h3>
         
         {prompts.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed border-white/10 rounded-2xl bg-white/5">
-            <p className="text-gray-500 text-xs">No prompt templates created yet.</p>
+          <div className="text-center py-16 border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.02] flex flex-col items-center justify-center p-8">
+            <span className="text-3xl mb-4">📋</span>
+            <h4 className="font-extrabold text-sm text-white mb-1">No Prompt Templates</h4>
+            <p className="text-[11px] text-slate-400 text-center max-w-xs">
+              No prompt templates have been created yet. Use the editor panel on the right to start drafting your first directive template.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

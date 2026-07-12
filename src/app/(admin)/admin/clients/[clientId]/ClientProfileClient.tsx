@@ -189,8 +189,12 @@ export function ClientProfileClient({
           </h3>
 
           {requests.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed border-white/10 rounded-2xl bg-white/5">
-              <p className="text-gray-500 text-xs">No requests submitted by this client yet.</p>
+            <div className="text-center py-16 border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.02] flex flex-col items-center justify-center p-8">
+              <span className="text-3xl mb-4">🗂️</span>
+              <h4 className="font-extrabold text-sm text-white mb-1">No Requests</h4>
+              <p className="text-[11px] text-slate-400 text-center max-w-xs">
+                No requests have been submitted by this client yet. Once they start a wizard session, history will compile here.
+              </p>
             </div>
           ) : (
             <div className="space-y-3">

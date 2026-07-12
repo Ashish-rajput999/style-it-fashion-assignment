@@ -1743,8 +1743,14 @@ button {
   background: white;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 3rem;
+  padding: 1.5rem;
   box-shadow: var(--shadow-md);
+}
+
+@media (min-width: 640px) {
+  .wizard-upload-card {
+    padding: 3rem;
+  }
 }
 
 .wizard-upload-title {
@@ -2407,4 +2413,45 @@ button {
   color: #64748b;
   margin-top: 0.15rem;
 }
+
+@media print {
+  html, body {
+    background-color: #ffffff !important;
+    color: #101936 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .page-break-wrapper {
+    page-break-after: always;
+    break-after: page;
+    break-inside: avoid;
+  }
+
+  .report-canvas {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 auto !important;
+    padding: 20px 40px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* Accessibility Pass: Universal high-contrast visible focus rings */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid #6D5DF6 !important;
+  outline-offset: 2px !important;
+}
+
 

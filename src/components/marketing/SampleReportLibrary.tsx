@@ -22,6 +22,7 @@ interface SampleReportData {
   status: string
   tier: string
   contentJson: string
+  outputId?: string
 }
 
 interface SampleReportLibraryProps {
@@ -55,9 +56,41 @@ const TIER_META: Record<string, { bg: string; text: string; border: string; desc
 export function SampleReportLibrary({ reports }: SampleReportLibraryProps) {
   const [activeReport, setActiveReport] = useState<SampleReportData | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [exporting, setExporting] = useState<'pdf' | 'docx' | null>(null)
 
-  const handleDownloadPDF = () => {
-    setToastMessage('Export coming in a later phase (Phase 12 PDF Export)')
+  const handleExport = async (format: 'pdf' | 'docx') => {
+    const outId = activeReport?.outputId || activeReport?.id
+    if (!outId) return
+    setExporting(format)
+    try {
+      const res = await fetch(`/api/export/${format}/${outId}`)
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}))
+        throw new Error(errJson.message || `${format.toUpperCase()} generation failed`)
+      }
+      
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      
+      const contentDisposition = res.headers.get('content-disposition')
+      let filename = `report.${format}`
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/)
+        if (match) filename = match[1]
+      }
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err: any) {
+      console.error(err)
+      setToastMessage(`❌ Error: ${err.message || 'Export failed'}`)
+    } finally {
+      setExporting(null)
+    }
   }
 
   // Auto-hide toast after 3 seconds
@@ -176,11 +209,21 @@ export function SampleReportLibrary({ reports }: SampleReportLibraryProps) {
 
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={handleDownloadPDF}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2 px-4 rounded-xl shadow-brand transition-all flex items-center gap-1.5 cursor-pointer"
+                    onClick={() => handleExport('pdf')}
+                    disabled={exporting !== null}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2 px-4 rounded-xl shadow-brand transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
-                    📥 Download PDF
+                    {exporting === 'pdf' ? '⏳ Exporting...' : '📥 Download PDF'}
                   </button>
+                  {activeReport.tier !== 'ESSENTIAL' && (
+                    <button
+                      onClick={() => handleExport('docx')}
+                      disabled={exporting !== null}
+                      className="bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold text-xs py-2 px-4 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {exporting === 'docx' ? '⏳ Exporting...' : '📝 Download DOCX'}
+                    </button>
+                  )}
                   <button
                     onClick={() => setActiveReport(null)}
                     className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center font-bold text-white transition-all text-sm cursor-pointer"

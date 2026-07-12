@@ -229,9 +229,9 @@ export default async function ClientDashboardPage() {
           /* Normal Listings */
           <div className="space-y-10">
             {/* Active & In Progress Meetings */}
-            {activeMeetings.length > 0 && (
-              <div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Active & In-Progress Requests</h3>
+            <div>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Active & In-Progress Requests</h3>
+              {activeMeetings.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {activeMeetings.map((meeting) => {
                     const statusConfig = STATUS_MAP[meeting.status] || {
@@ -240,10 +240,6 @@ export default async function ClientDashboardPage() {
                       desc: 'Processing request.',
                     }
                     const tierConfig = getTierStyle(meeting.tier)
-                    const isInProgress =
-                      meeting.status !== 'DRAFT' &&
-                      meeting.status !== 'PREVIEWED' &&
-                      meeting.status !== 'QUOTED'
 
                     return (
                       <div
@@ -279,24 +275,16 @@ export default async function ClientDashboardPage() {
                               href={`/wizard/details?draftId=${meeting.id}`}
                               className="w-full text-center py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-[10px] rounded-lg transition"
                             >
-                              Complete Details
+                              Resume Draft
+                            </Link>
+                          ) : meeting.status === 'QUOTED' ? (
+                            <Link
+                              href={`/wizard/quote?draftId=${meeting.id}`}
+                              className="w-full text-center py-2 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[10px] rounded-lg transition"
+                            >
+                              Review Proposal
                             </Link>
                           ) : meeting.status === 'PREVIEWED' ? (
-                            <div className="flex gap-2 w-full">
-                              <Link
-                                href={`/wizard/preview?draftId=${meeting.id}`}
-                                className="flex-1 text-center py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] rounded-lg transition"
-                              >
-                                View Preview
-                              </Link>
-                              <Link
-                                href={`/wizard/quote?draftId=${meeting.id}`}
-                                className="flex-1 text-center py-2 px-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold text-[10px] rounded-lg transition"
-                              >
-                                Request Quote
-                              </Link>
-                            </div>
-                          ) : meeting.status === 'QUOTED' ? (
                             <Link
                               href={`/wizard/preview?draftId=${meeting.id}`}
                               className="w-full text-center py-2 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[10px] rounded-lg transition"
@@ -318,13 +306,17 @@ export default async function ClientDashboardPage() {
                     )
                   })}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="bg-white border border-gray-200 rounded-2xl p-6 text-center text-gray-500 text-xs shadow-sm">
+                  💡 No active or in-progress requests at the moment. Use the wizard above to start a new compliance minutes report!
+                </div>
+              )}
+            </div>
 
             {/* Delivered Reports */}
-            {deliveredMeetings.length > 0 && (
-              <div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Delivered Reports</h3>
+            <div>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Delivered Reports</h3>
+              {deliveredMeetings.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {deliveredMeetings.map((meeting) => {
                     const tierConfig = getTierStyle(meeting.tier)
@@ -368,8 +360,12 @@ export default async function ClientDashboardPage() {
                     )
                   })}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center text-gray-500 text-xs shadow-sm">
+                  📚 No compliance reports have been delivered yet. Once admin verification and dispatch are complete, they will appear here.
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>

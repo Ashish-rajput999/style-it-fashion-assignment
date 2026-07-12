@@ -192,8 +192,9 @@ export function AdminQueueClient({ meetings }: AdminQueueClientProps) {
             {/* Column cards */}
             <div className="space-y-2">
               {col.items.length === 0 ? (
-                <div className="text-center py-6 text-gray-600 text-[10px] font-medium border border-white/5 rounded-xl">
-                  No requests
+                <div className="text-center py-8 text-slate-500 text-[10px] font-bold border border-white/5 rounded-2xl bg-white/[0.01] flex flex-col items-center justify-center gap-1.5">
+                  <span className="text-sm">📥</span>
+                  <span>Empty Column</span>
                 </div>
               ) : (
                 col.items.map((m) => <RequestCard key={m.id} meeting={m} />)
@@ -204,8 +205,12 @@ export function AdminQueueClient({ meetings }: AdminQueueClientProps) {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-gray-500 text-sm">
-          No requests match your current filters.
+        <div className="text-center py-16 border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.02] max-w-md mx-auto my-12 flex flex-col items-center justify-center p-8">
+          <span className="text-3xl mb-4">🔍</span>
+          <h4 className="font-extrabold text-sm text-white mb-1">No Matching Requests</h4>
+          <p className="text-[11px] text-slate-400 text-center max-w-xs">
+            We couldn't find any request profiles matching your search query or chosen compliance filters. Try adjusting your selections.
+          </p>
         </div>
       )}
     </div>

@@ -66,6 +66,7 @@ export default async function PreviewPage({ params }: PreviewPageProps) {
         meetingType: meeting.meetingType,
         status: meeting.status,
         tier: meeting.tier,
+        outputId: meeting.generatedOutputs[0]?.id || '',
       }}
       report={report}
     />

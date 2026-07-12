@@ -36,6 +36,7 @@ export default async function HomePage() {
         status: m.status,
         tier: m.tier,
         contentJson: m.generatedOutputs[0].contentJson,
+        outputId: m.generatedOutputs[0].id,
       }))
       .sort((a, b) => orderedTiers.indexOf(a.tier) - orderedTiers.indexOf(b.tier))
   } catch (err) {
@@ -91,7 +92,7 @@ export default async function HomePage() {
               Meeting Minutes for CSE Boards
             </span>
           </h2>
-          <p className="text-gray-400 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
+          <p className="text-gray-300 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
             Transform raw meeting audio files into signed, agenda-structured, and fully audited minutes conforming to the French Labor Code. Fully sandboxed, secure, and ready in seconds.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
