@@ -84,6 +84,13 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
             CRM Profile · Contact: {client.user.name} ({client.user.email})
           </p>
         </div>
+        <div className="ml-auto">
+          <form action="/api/auth/signout" method="POST">
+            <button className="bg-white/10 hover:bg-white/20 text-white font-bold py-1.5 px-3 rounded-lg transition-all text-xs">
+              Sign Out
+            </button>
+          </form>
+        </div>
       </header>
 
       {/* Main content workspace */}

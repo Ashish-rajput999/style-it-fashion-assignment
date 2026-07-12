@@ -173,6 +173,11 @@ export default async function RequestDetailPage({ params, searchParams }: Reques
           <span className="text-[9px] font-extrabold uppercase tracking-widest px-2 py-1 rounded-full bg-white/10 text-gray-300">
             {meeting.status.replace(/_/g, ' ')}
           </span>
+          <form action="/api/auth/signout" method="POST">
+            <button className="bg-white/10 hover:bg-white/20 text-white font-bold py-1.5 px-3 rounded-lg transition-all text-xs">
+              Sign Out
+            </button>
+          </form>
         </div>
       </header>
 

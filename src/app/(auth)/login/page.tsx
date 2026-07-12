@@ -34,8 +34,7 @@ export default function LoginPage() {
         const sessionRes = await fetch('/api/auth/session')
         const session = await sessionRes.json()
         if (session?.user?.role === 'ADMIN') {
-          // Admin panel not yet built — redirect to dev sandbox
-          router.push('/dev/components')
+          router.push('/admin')
         } else {
           router.push('/wizard/region')
         }

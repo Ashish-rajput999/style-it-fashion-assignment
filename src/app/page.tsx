@@ -94,7 +94,7 @@ export default function HomePage() {
           Client Login →
         </a>
         <a
-          href="/admin/login"
+          href="/login"
           style={{
             padding: '12px 24px',
             background: '#fff',
